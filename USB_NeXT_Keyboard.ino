@@ -15,8 +15,8 @@
 #define TIMING 50
 
 // pick which pins you want to use
-#define KEYBOARDOUT 16
-#define KEYBOARDIN 14
+#define KEYBOARDOUT 3
+#define KEYBOARDIN 2
 
 // comment to speed things up, uncomment for help!
 //#define DEBUG 
