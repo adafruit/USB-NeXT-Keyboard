@@ -149,51 +149,49 @@ void loop() {
   Serial.print("keycode: "); Serial.print(keycode);
 #endif
 
-  if (keycode == 0) { 
-    // modifiers! you can remap these here, 
-    // but I suggest doing it in the OS instead
-    if (resp & 0x1000)
-      Keyboard.press(KEY_LEFT_GUI);
-    else 
-      Keyboard.release(KEY_LEFT_GUI);
+  // modifiers! you can remap these here, 
+  // but I suggest doing it in the OS instead
+  if (resp & 0x1000)
+    Keyboard.press(KEY_LEFT_GUI);
+  else 
+    Keyboard.release(KEY_LEFT_GUI);
 
-    if (resp & 0x2000) {
-      Keyboard.press(KEY_LEFT_SHIFT);
-    } else { 
-      Keyboard.release(KEY_LEFT_SHIFT);
-    }
-    if (resp & 0x4000) {
-      Keyboard.press(KEY_RIGHT_SHIFT);
-    } else {
-      Keyboard.release(KEY_RIGHT_SHIFT);
-    }
-    // turn on shift LEDs if shift is held down
-    if (resp & 0x6000)
-      setLEDs(true, true);
-    else
-      setLEDs(false, false);
-      
-    if (resp & 0x8000)
-      Keyboard.press(KEY_LEFT_CTRL);
-    else 
-      Keyboard.release(KEY_LEFT_CTRL);
-      
-    if (resp & 0x10000)
-      Keyboard.press(KEY_RIGHT_CTRL);
-    else 
-      Keyboard.release(KEY_RIGHT_CTRL);
-
-    if (resp & 0x20000)
-      Keyboard.press(KEY_LEFT_ALT);
-    else 
-      Keyboard.release(KEY_LEFT_ALT);
-    if (resp & 0x40000)
-      Keyboard.press(KEY_RIGHT_ALT);
-    else 
-      Keyboard.release(KEY_RIGHT_ALT);
-
-    return;
+  if (resp & 0x2000) {
+    Keyboard.press(KEY_LEFT_SHIFT);
+  } else { 
+    Keyboard.release(KEY_LEFT_SHIFT);
   }
+  if (resp & 0x4000) {
+    Keyboard.press(KEY_RIGHT_SHIFT);
+  } else {
+    Keyboard.release(KEY_RIGHT_SHIFT);
+  }
+  // turn on shift LEDs if shift is held down
+  if (resp & 0x6000)
+    setLEDs(true, true);
+  else
+    setLEDs(false, false);
+    
+  if (resp & 0x8000)
+    Keyboard.press(KEY_LEFT_CTRL);
+  else 
+    Keyboard.release(KEY_LEFT_CTRL);
+    
+  if (resp & 0x10000)
+    Keyboard.press(KEY_RIGHT_CTRL);
+  else 
+    Keyboard.release(KEY_RIGHT_CTRL);
+
+  if (resp & 0x20000)
+    Keyboard.press(KEY_LEFT_ALT);
+  else 
+    Keyboard.release(KEY_LEFT_ALT);
+  if (resp & 0x40000)
+    Keyboard.press(KEY_RIGHT_ALT);
+  else 
+    Keyboard.release(KEY_RIGHT_ALT);
+
+  if (keycode == 0) return;
   
   for (int i = 0; i< 100; i++) {
     if (nextkbd_keydesc_us[i*3] == keycode) {
