@@ -57,7 +57,7 @@ static const keysym_t nextkbd_keydesc_us[] = {
     KC(22),			KS_Up, 0,
     KC(23), 			KS_KP_2, 0,
     KC(24), 			KS_KP_5, 0,
-    KC(27), 			KS_Delete, 0,
+    KC(27), 			KS_BackSpace, 0,
     KC(28), 			KS_equal,	KS_plus,
     KC(29), 			KS_minus,	KS_underscore,
     KC(30),  			KS_8,		KS_asterisk,
