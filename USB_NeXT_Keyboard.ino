@@ -30,6 +30,18 @@ uint8_t misopin;
 // debugging/activity LED
 #define LED 13
 
+#define NEXT_KMBUS_IDLE 0x200600
+
+// NeXT Keyboard Defines
+// modifiers
+#define NEXT_KB_CONTROL 0x1000
+#define NEXT_KB_ALTERNATE_LEFT 0x20000
+#define NEXT_KB_ALTERNATE_RIGHT 0x40000
+#define NEXT_KB_COMMAND_LEFT 0x8000
+#define NEXT_KB_COMMAND_RIGHT 0x10000
+#define NEXT_KB_SHIFT_LEFT 0x2000
+#define NEXT_KB_SHIFT_RIGHT 0x4000
+
 // special command for setting LEDs
 void setLEDs(bool leftLED, bool rightLED) {
   digitalWrite(KEYBOARDOUT, LOW);
@@ -135,7 +147,7 @@ void loop() {
   resp = getresponse();
 
   // check for a 'idle' response, we'll do nothing
-  if (resp == 0x200600) return;
+  if (resp == NEXT_KMBUS_IDLE) return;
   
   // turn on the LED when we get real resposes!
   digitalWrite(LED, HIGH);
@@ -151,42 +163,44 @@ void loop() {
 
   // modifiers! you can remap these here, 
   // but I suggest doing it in the OS instead
-  if (resp & 0x1000)
-    Keyboard.press(KEY_LEFT_GUI);
+  if (resp & NEXT_KB_CONTROL)
+    Keyboard.press(KEY_LEFT_CTRL);
   else 
-    Keyboard.release(KEY_LEFT_GUI);
+    Keyboard.release(KEY_LEFT_CTRL);
 
-  if (resp & 0x2000) {
+  if (resp & NEXT_KB_SHIFT_LEFT) {
     Keyboard.press(KEY_LEFT_SHIFT);
   } else { 
     Keyboard.release(KEY_LEFT_SHIFT);
   }
-  if (resp & 0x4000) {
+  if (resp & NEXT_KB_SHIFT_RIGHT) {
     Keyboard.press(KEY_RIGHT_SHIFT);
   } else {
     Keyboard.release(KEY_RIGHT_SHIFT);
   }
+  boolean shiftPressed = (resp & (NEXT_KB_SHIFT_LEFT|NEXT_KB_SHIFT_RIGHT)) != 0;
+  
   // turn on shift LEDs if shift is held down
-  if (resp & 0x6000)
+  if (shiftPressed)
     setLEDs(true, true);
   else
     setLEDs(false, false);
     
-  if (resp & 0x8000)
-    Keyboard.press(KEY_LEFT_CTRL);
+  if (resp & NEXT_KB_COMMAND_LEFT)
+    Keyboard.press(KEY_LEFT_GUI);
   else 
-    Keyboard.release(KEY_LEFT_CTRL);
+    Keyboard.release(KEY_LEFT_GUI);
     
-  if (resp & 0x10000)
-    Keyboard.press(KEY_RIGHT_CTRL);
+  if (resp & NEXT_KB_COMMAND_RIGHT)
+    Keyboard.press(KEY_RIGHT_GUI);
   else 
-    Keyboard.release(KEY_RIGHT_CTRL);
+    Keyboard.release(KEY_RIGHT_GUI);
 
-  if (resp & 0x20000)
+  if (resp & NEXT_KB_ALTERNATE_LEFT)
     Keyboard.press(KEY_LEFT_ALT);
   else 
     Keyboard.release(KEY_LEFT_ALT);
-  if (resp & 0x40000)
+  if (resp & NEXT_KB_ALTERNATE_RIGHT)
     Keyboard.press(KEY_RIGHT_ALT);
   else 
     Keyboard.release(KEY_RIGHT_ALT);
@@ -195,25 +209,44 @@ void loop() {
   
   for (int i = 0; i< 100; i++) {
     if (nextkbd_keydesc_us[i*3] == keycode) {
-      char ascii = nextkbd_keydesc_us[i*3+1];
+      keysym_t keydesc = nextkbd_keydesc_us[i*3+1];
+      char ascii = (char) keydesc;
 
 #ifdef DEBUG
-      Serial.print("--> ");      Serial.print(ascii);
+      Serial.print("--> ");      Serial.print(ascii); Serial.print(" / "); Serial.print(keydesc, HEX);
 #endif
 
       int code;
-      switch (keycode) {
-        case 73: code = KEY_ESC; break;
-        case 13: code = KEY_RETURN; break;
-        case 42: code = KEY_RETURN; break;
-        case 27: code = KEY_BACKSPACE; break;
-        case 22: code = KEY_UP_ARROW; break;
-        case 15: code = KEY_DOWN_ARROW; break;
-        case 16: code = KEY_RIGHT_ARROW; break;
-        case 9: code = KEY_LEFT_ARROW; break;
-        // remap the 'lower volume' key to Delete (its where youd expect it)
-        case 2: code = KEY_DELETE; break;
+      switch (keydesc) {
+        case KS_KP_Enter:
+        case KS_Return:    code = KEY_RETURN; break;
+        case KS_Escape:    code = KEY_ESC; break;
+        case KS_BackSpace: code = KEY_BACKSPACE; break;
+        case KS_Up:        code = KEY_UP_ARROW; break;
+        case KS_Down:      code = KEY_DOWN_ARROW; break;
+        case KS_Left:      code = KEY_LEFT_ARROW; break;
+        case KS_Right:     code = KEY_RIGHT_ARROW; break;
+
+        // hacks for two tricky numpad keys
+        case KS_KP_Equal:  code = (shiftPressed ? KS_bar : ascii); break;
+        case KS_KP_Divide:
+          if (shiftPressed) {
+            Keyboard.release(KEY_RIGHT_SHIFT);
+            Keyboard.release(KEY_LEFT_SHIFT);
+
+            code = KS_backslash;            
+          } else {
+            code = ascii;
+          }
+          break;
         
+        // remap the other special keys because the KeyboardMouse can't send proper vol/brightness anyway
+        case KS_AudioLower:  code = KEY_INSERT; break;
+        case KS_AudioRaise:  code = KEY_DELETE; break;
+        case KS_Cmd_BrightnessUp:    code = KEY_PAGE_UP; break;
+        case KS_Cmd_BrightnessDown:  code = KEY_PAGE_DOWN; break;
+        
+        case 0:
         default: code = ascii;
       }
       if ((resp & 0xF00) == 0x400) {  // down press
@@ -229,6 +262,14 @@ void loop() {
         Serial.println(" ^ ");
 #endif
         break;
+      }
+      
+      // re-press shift if need be
+      if (keydesc == KS_KP_Divide && shiftPressed) {
+          if (resp & NEXT_KB_SHIFT_LEFT)
+            Keyboard.press(KEY_LEFT_SHIFT);
+          if (resp & NEXT_KB_SHIFT_RIGHT)
+            Keyboard.press(KEY_RIGHT_SHIFT);
       }
     }
   }
