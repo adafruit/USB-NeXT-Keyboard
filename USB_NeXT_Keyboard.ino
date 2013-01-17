@@ -209,7 +209,7 @@ void loop() {
   
   for (int i = 0; i< 100; i++) {
     if (nextkbd_keydesc_us[i*3] == keycode) {
-      keysym_t keydesc = nextkbd_keydesc_us[i*3+1+(shiftPressed?1:0)];
+      keysym_t keydesc = nextkbd_keydesc_us[i*3+1];
       char ascii = (char) keydesc;
 
 #ifdef DEBUG
@@ -226,6 +226,19 @@ void loop() {
         case KS_Down:      code = KEY_DOWN_ARROW; break;
         case KS_Left:      code = KEY_LEFT_ARROW; break;
         case KS_Right:     code = KEY_RIGHT_ARROW; break;
+
+        // hacks for two tricky numpad keys
+        case KS_KP_Equal:  code = (shiftPressed ? KS_bar : ascii); break;
+        case KS_KP_Divide:
+          if (shiftPressed) {
+            Keyboard.release(KEY_RIGHT_SHIFT);
+            Keyboard.release(KEY_LEFT_SHIFT);
+
+            code = KS_backslash;            
+          } else {
+            code = ascii;
+          }
+          break;
         
         // remap the other special keys because the KeyboardMouse can't send proper vol/brightness anyway
         case KS_AudioLower:  code = KEY_INSERT; break;
@@ -249,6 +262,14 @@ void loop() {
         Serial.println(" ^ ");
 #endif
         break;
+      }
+      
+      // re-press shift if need be
+      if (keydesc == KS_KP_Divide && shiftPressed) {
+          if (resp & NEXT_KB_SHIFT_LEFT)
+            Keyboard.press(KEY_LEFT_SHIFT);
+          if (resp & NEXT_KB_SHIFT_RIGHT)
+            Keyboard.press(KEY_RIGHT_SHIFT);
       }
     }
   }
