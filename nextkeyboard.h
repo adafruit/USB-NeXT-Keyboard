@@ -33,7 +33,7 @@
  
 #define KC(n) n
 
-#define keysym_t char
+typedef unsigned short keysym_t;
 
 static const keysym_t nextkbd_keydesc_us[] = {
 /*  pos      normal		shifted */
@@ -57,7 +57,7 @@ static const keysym_t nextkbd_keydesc_us[] = {
     KC(22),			KS_Up, 0,
     KC(23), 			KS_KP_2, 0,
     KC(24), 			KS_KP_5, 0,
-    KC(27), 			KS_Delete, 0,
+    KC(27), 			KS_BackSpace, 0,
     KC(28), 			KS_equal,	KS_plus,
     KC(29), 			KS_minus,	KS_underscore,
     KC(30),  			KS_8,		KS_asterisk,
@@ -120,9 +120,9 @@ static const keysym_t nextkbd_keydesc_us[] = {
     KC(96), 			KS_Cmd2, 0,
 
 // special exception for volume up, down + brightness up, down
-    KC(26),  	0xCD, 0,  // vol up
-    KC(2),      0xCC, 0,  // vol down
-    KC(25),  	0xC3, 0,  // bright up
-    KC(1),      0xC2, 0,  // bright down
+    KC(26),  	KS_AudioLower, 0,  // vol up
+    KC(2),      KS_AudioRaise, 0,  // vol down
+    KC(25),  	KS_Cmd_BrightnessUp, 0,  // bright up
+    KC(1),      KS_Cmd_BrightnessDown, 0,  // bright down
 
 };
