@@ -42,12 +42,6 @@ uint8_t misopin;
 #define NEXT_KB_SHIFT_LEFT 0x2000
 #define NEXT_KB_SHIFT_RIGHT 0x4000
 
-// special keys
-#define NEXT_KC_VOLUME_UP 26
-#define NEXT_KC_VOLUME_DOWN 2
-#define NEXT_KC_BRIGHTNESS_UP 25
-#define NEXT_KC_BRIGHTNESS_DOWN 1
-
 // special command for setting LEDs
 void setLEDs(bool leftLED, bool rightLED) {
   digitalWrite(KEYBOARDOUT, LOW);
@@ -184,8 +178,10 @@ void loop() {
   } else {
     Keyboard.release(KEY_RIGHT_SHIFT);
   }
+  boolean shiftPressed = (resp & (NEXT_KB_SHIFT_LEFT|NEXT_KB_SHIFT_RIGHT)) != 0;
+  
   // turn on shift LEDs if shift is held down
-  if (resp & (NEXT_KB_SHIFT_LEFT|NEXT_KB_SHIFT_RIGHT))
+  if (shiftPressed)
     setLEDs(true, true);
   else
     setLEDs(false, false);
@@ -213,25 +209,31 @@ void loop() {
   
   for (int i = 0; i< 100; i++) {
     if (nextkbd_keydesc_us[i*3] == keycode) {
-      char ascii = nextkbd_keydesc_us[i*3+1];
+      keysym_t keydesc = nextkbd_keydesc_us[i*3+1+(shiftPressed?1:0)];
+      char ascii = (char) keydesc;
 
 #ifdef DEBUG
-      Serial.print("--> ");      Serial.print(ascii);
+      Serial.print("--> ");      Serial.print(ascii); Serial.print(" / "); Serial.print(keydesc, HEX);
 #endif
 
       int code;
-      switch (keycode) {
-        case 73: code = KEY_ESC; break;
-        case 13: code = KEY_RETURN; break;
-        case 42: code = KEY_RETURN; break;
-        case 27: code = KEY_BACKSPACE; break;
-        case 22: code = KEY_UP_ARROW; break;
-        case 15: code = KEY_DOWN_ARROW; break;
-        case 16: code = KEY_RIGHT_ARROW; break;
-        case 9: code = KEY_LEFT_ARROW; break;
-        // remap the 'lower volume' key to Delete (it's where you'd expect it)
-        case NEXT_KC_VOLUME_DOWN: code = KEY_DELETE; break;
+      switch (keydesc) {
+        case KS_KP_Enter:
+        case KS_Return:    code = KEY_RETURN; break;
+        case KS_Escape:    code = KEY_ESC; break;
+        case KS_BackSpace: code = KEY_BACKSPACE; break;
+        case KS_Up:        code = KEY_UP_ARROW; break;
+        case KS_Down:      code = KEY_DOWN_ARROW; break;
+        case KS_Left:      code = KEY_LEFT_ARROW; break;
+        case KS_Right:     code = KEY_RIGHT_ARROW; break;
         
+        // remap the other special keys because the KeyboardMouse can't send proper vol/brightness anyway
+        case KS_AudioLower:  code = KEY_INSERT; break;
+        case KS_AudioRaise:  code = KEY_DELETE; break;
+        case KS_Cmd_BrightnessUp:    code = KEY_PAGE_UP; break;
+        case KS_Cmd_BrightnessDown:  code = KEY_PAGE_DOWN; break;
+        
+        case 0:
         default: code = ascii;
       }
       if ((resp & 0xF00) == 0x400) {  // down press
