@@ -164,9 +164,9 @@ void loop() {
   // modifiers! you can remap these here, 
   // but I suggest doing it in the OS instead
   if (resp & NEXT_KB_CONTROL)
-    Keyboard.press(KEY_LEFT_GUI);
+    Keyboard.press(KEY_LEFT_CTRL);
   else 
-    Keyboard.release(KEY_LEFT_GUI);
+    Keyboard.release(KEY_LEFT_CTRL);
 
   if (resp & NEXT_KB_SHIFT_LEFT) {
     Keyboard.press(KEY_LEFT_SHIFT);
@@ -187,14 +187,14 @@ void loop() {
     setLEDs(false, false);
     
   if (resp & NEXT_KB_COMMAND_LEFT)
-    Keyboard.press(KEY_LEFT_CTRL);
+    Keyboard.press(KEY_LEFT_GUI);
   else 
-    Keyboard.release(KEY_LEFT_CTRL);
+    Keyboard.release(KEY_LEFT_GUI);
     
   if (resp & NEXT_KB_COMMAND_RIGHT)
-    Keyboard.press(KEY_RIGHT_CTRL);
+    Keyboard.press(KEY_RIGHT_GUI);
   else 
-    Keyboard.release(KEY_RIGHT_CTRL);
+    Keyboard.release(KEY_RIGHT_GUI);
 
   if (resp & NEXT_KB_ALTERNATE_LEFT)
     Keyboard.press(KEY_LEFT_ALT);
